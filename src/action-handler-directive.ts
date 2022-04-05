@@ -1,14 +1,15 @@
-import { directive, PropertyPart } from 'lit-html';
+import { noChange } from 'lit';
+import { AttributePart, directive, Directive, DirectiveParameters } from 'lit/directive';
 
-import { fireEvent, ActionHandlerDetail, ActionHandlerOptions } from 'custom-card-helpers';
+import { ActionHandlerDetail, ActionHandlerOptions } from 'custom-card-helpers/dist/types';
+import { fireEvent } from 'custom-card-helpers';
 
-const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
+const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.maxTouchPoints > 0;
 
 interface ActionHandler extends HTMLElement {
   holdTime: number;
   bind(element: Element, options): void;
 }
-
 interface ActionHandlerElement extends HTMLElement {
   actionHandler?: boolean;
 }
@@ -49,7 +50,7 @@ class ActionHandler extends HTMLElement implements ActionHandler {
     this.appendChild(this.ripple);
     this.ripple.primary = true;
 
-    ['touchcancel', 'mouseout', 'mouseup', 'touchmove', 'mousewheel', 'wheel', 'scroll'].forEach(ev => {
+    ['touchcancel', 'mouseout', 'mouseup', 'touchmove', 'mousewheel', 'wheel', 'scroll'].forEach((ev) => {
       document.addEventListener(
         ev,
         () => {
@@ -161,21 +162,22 @@ class ActionHandler extends HTMLElement implements ActionHandler {
   }
 }
 
-customElements.define('action-handler-roku-card', ActionHandler);
+// TODO You need to replace all instances of "action-handler-boilerplate" with "action-handler-<your card name>"
+customElements.define('action-handler-boilerplate', ActionHandler);
 
 const getActionHandler = (): ActionHandler => {
   const body = document.body;
-  if (body.querySelector('action-handler-roku-card')) {
-    return body.querySelector('action-handler-roku-card') as ActionHandler;
+  if (body.querySelector('action-handler-boilerplate')) {
+    return body.querySelector('action-handler-boilerplate') as ActionHandler;
   }
 
-  const actionhandler = document.createElement('action-handler-roku-card');
+  const actionhandler = document.createElement('action-handler-boilerplate');
   body.appendChild(actionhandler);
 
   return actionhandler as ActionHandler;
 };
 
-export const actionHandlerBind = (element: ActionHandlerElement, options: ActionHandlerOptions): void => {
+export const actionHandlerBind = (element: ActionHandlerElement, options?: ActionHandlerOptions): void => {
   const actionhandler: ActionHandler = getActionHandler();
   if (!actionhandler) {
     return;
@@ -183,6 +185,14 @@ export const actionHandlerBind = (element: ActionHandlerElement, options: Action
   actionhandler.bind(element, options);
 };
 
-export const actionHandler = directive((options: ActionHandlerOptions = {}) => (part: PropertyPart): void => {
-  actionHandlerBind(part.committer.element as ActionHandlerElement, options);
-});
+export const actionHandler = directive(
+  class extends Directive {
+    update(part: AttributePart, [options]: DirectiveParameters<this>) {
+      actionHandlerBind(part.element as ActionHandlerElement, options);
+      return noChange;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+    render(_options?: ActionHandlerOptions) {}
+  },
+);

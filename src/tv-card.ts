@@ -1,42 +1,24 @@
-import {
-  html,
-  LitElement,
-  TemplateResult,
-  customElement,
-  property,
-  CSSResult,
-  css,
-  internalProperty,
-} from 'lit-element';
-import { HomeAssistant, applyThemesOnElement, hasAction, handleClick } from 'custom-card-helpers';
+import { html, LitElement, TemplateResult, property, CSSResult, css, state } from 'lit-element';
+import { HomeAssistant, applyThemesOnElement, hasAction, handleClick, LovelaceCard } from 'custom-card-helpers';
 
-import { RokuCardConfig } from './types';
+import { RokuCardConfig as TVCardConfig } from './types';
 import { actionHandler } from './action-handler-directive';
-import { CARD_VERSION } from './const';
 
 const defaultRemoteAction = {
   action: 'call-service',
   service: 'remote.send_command',
 };
 
-/* eslint no-console: 0 */
-console.info(
-  `%c  ROKU-CARD     \n%c  Version ${CARD_VERSION} `,
-  'color: orange; font-weight: bold; background: black',
-  'color: white; font-weight: bold; background: dimgray',
-);
-
-@customElement('roku-card')
-export class RokuCard extends LitElement {
+export class TVCard extends LitElement implements LovelaceCard {
   @property({ attribute: false }) public hass?: HomeAssistant;
 
-  @internalProperty() private _config?: RokuCardConfig;
+  @state() private _config?: TVCardConfig;
 
   public getCardSize(): number {
     return 7;
   }
 
-  public setConfig(config: RokuCardConfig): void {
+  public setConfig(config: TVCardConfig): void {
     if (!config.entity && !config.remote) {
       console.log("Invalid configuration. If no entity provided, you'll need to provide a remote entity");
       return;
@@ -196,18 +178,14 @@ export class RokuCard extends LitElement {
               })}
             />
           `
-      : html`
-          <ha-icon icon="mdi:none"></ha-icon>
-        `;
+      : html` <ha-icon icon="mdi:none"></ha-icon> `;
   }
 
   private _renderButton(button: string, icon: string, title: string): TemplateResult {
     if (this._config) {
       const config = this._config[button];
       return config && config.show === false
-        ? html`
-            <ha-icon icon="mdi:none"></ha-icon>
-          `
+        ? html` <ha-icon icon="mdi:none"></ha-icon> `
         : html`
             <ha-icon-button
               .button=${button}
